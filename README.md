@@ -48,3 +48,20 @@ The goal of this project is to create a professional and visually stunning CV pa
 
 3. **Open in browser**:
    Navigate to `http://localhost:8080`
+
+## Development Hooks
+
+This project uses the [pre-commit](https://pre-commit.com/) framework via [prek](https://github.com/j178/prek) to ensure code quality.
+
+1. **Install prek**:
+   ```bash
+   # Using cargo binstall (Recommended)
+   cargo binstall prek
+   ```
+
+2. **Install the hooks**:
+   ```bash
+   prek install
+   ```
+
+Now, `cargo fmt` and `cargo test` will run automatically every time you commit. You can also run them manually anytime with `prek run`.

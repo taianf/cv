@@ -12,7 +12,8 @@ reqwest = { version = "0.13.1", features = ["json"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 rusqlite = { version = "0.33", optional = true }
-web-sys = { version = "0.3", features = ["Window", "Storage"] }
+web-sys = { version = "0.3", features = ["Window", "Storage", "Location", "Url"] }
+oauth2 = { version = "4.4", optional = true }
 
 [features]
 default = ["web"]
@@ -23,4 +24,4 @@ desktop = ["dioxus/desktop"]
 # The feature that are only required for the mobile = ["dioxus/mobile"] build target should be optional and only enabled in the mobile = ["dioxus/mobile"] feature
 mobile = ["dioxus/mobile"]
 # The feature that are only required for the server = ["dioxus/server"] build target should be optional and only enabled in the server = ["dioxus/server"] feature
-server = ["dioxus/server", "dep:rusqlite"]
+server = ["dioxus/server", "dep:rusqlite", "dep:oauth2"]

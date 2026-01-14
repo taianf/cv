@@ -41,6 +41,7 @@
     --tracking-wider: 0.05em;
     --radius-lg: 0.5rem;
     --radius-2xl: 1rem;
+    --animate-spin: spin 1s linear infinite;
     --animate-ping: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
     --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     --default-transition-duration: 150ms;
@@ -267,14 +268,23 @@
   .h-3 {
     height: calc(var(--spacing) * 3);
   }
+  .h-16 {
+    height: calc(var(--spacing) * 16);
+  }
   .h-32 {
     height: calc(var(--spacing) * 32);
   }
   .h-full {
     height: 100%;
   }
+  .min-h-screen {
+    min-height: 100vh;
+  }
   .w-3 {
     width: calc(var(--spacing) * 3);
+  }
+  .w-16 {
+    width: calc(var(--spacing) * 16);
   }
   .w-32 {
     width: calc(var(--spacing) * 32);
@@ -299,6 +309,9 @@
   }
   .animate-pulse {
     animation: var(--animate-pulse);
+  }
+  .animate-spin {
+    animation: var(--animate-spin);
   }
   .resize {
     resize: both;
@@ -370,6 +383,14 @@
   .border-t {
     border-top-style: var(--tw-border-style);
     border-top-width: 1px;
+  }
+  .border-t-2 {
+    border-top-style: var(--tw-border-style);
+    border-top-width: 2px;
+  }
+  .border-b-2 {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 2px;
   }
   .border-blue-500 {
     border-color: var(--color-blue-500);
@@ -679,6 +700,11 @@
   syntax: "*";
   inherits: false;
   initial-value: solid;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 @keyframes ping {
   75%, 100% {

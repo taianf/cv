@@ -6,3 +6,6 @@ pub use navbar::Navbar;
 
 mod profile;
 pub use profile::Profile;
+
+mod callback;
+pub use callback::AuthCallback;

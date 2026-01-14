@@ -61,14 +61,11 @@ pub fn Navbar() -> Element {
                         class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors",
                         onclick: move |_| {
                             spawn(async move {
-                                if let Ok(user) = crate::models::login_mock().await {
-                                    auth_user.set(Some(user.clone()));
+                                if let Ok(url) = crate::models::get_google_auth_url().await {
                                     #[cfg(feature = "web")]
                                     {
                                         if let Some(window) = web_sys::window() {
-                                            if let Ok(Some(storage)) = window.local_storage() {
-                                                let _ = storage.set_item("auth_email", &user.email);
-                                            }
+                                            let _ = window.location().set_href(&url);
                                         }
                                     }
                                 }

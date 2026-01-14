@@ -3,7 +3,7 @@ pub mod models;
 pub mod views;
 
 use dioxus::prelude::*;
-use views::{Home, Navbar, Profile};
+use views::{AuthCallback, Home, Navbar, Profile};
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 pub enum Route {
@@ -12,4 +12,6 @@ pub enum Route {
     Home {},
     #[route("/profile")]
     Profile {},
+    #[route("/auth/callback")]
+    AuthCallback {},
 }

@@ -18,50 +18,47 @@ The goal of this project is to create a professional and visually stunning CV pa
 - **Database**: SQLite (Rusqlite) for caching
 - **Auth**: Google OAuth2
 
+## Quick Start
+
+The easiest way to get started is to use the automated setup script:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+This script will:
+1. Install `cargo-binstall`.
+2. Install `dioxus-cli`.
+3. Install `prek`.
+4. Activate Git hooks.
+5. Create a `.env` file from the template.
+
 ## Configuration
 
-1. **Copy the environment template**:
-   ```bash
-   cp .env.template .env
-   ```
-
-2. **Set up Google OAuth2**:
+1. **Set up Google OAuth2**:
    - Create a project at [Google Cloud Console](https://console.cloud.google.com/).
    - Create OAuth 2.0 Credentials (Web Application).
    - Add `http://localhost:8080/auth/callback` to the **Authorized redirect URIs**.
    - Copy the Client ID and Client Secret into your `.env` file.
 
-## Getting Started
+## Running the Application
 
-1. **Install Dioxus CLI**:
+1. **Start the development server**:
    ```bash
-   cargo install dioxus-cli
-   ```
-
-2. **Run the development server**:
-   Make sure you have your environment variables set or use a tool to load them.
-   ```bash
-   # If using a bash-like shell:
+   # Load environment variables and start
    export $(cat .env | xargs)
    dx serve
    ```
 
-3. **Open in browser**:
+2. **Open in browser**:
    Navigate to `http://localhost:8080`
 
 ## Development Hooks
 
-This project uses the [pre-commit](https://pre-commit.com/) framework via [prek](https://github.com/j178/prek) to ensure code quality.
+This project uses [prek](https://github.com/j178/prek) to manage [pre-commit](https://pre-commit.com/) hooks.
 
-1. **Install prek**:
-   ```bash
-   # Using cargo binstall (Recommended)
-   cargo binstall prek
-   ```
+- **Manual Run**: `prek run`
+- **Update Hooks**: `prek autoupdate`
 
-2. **Install the hooks**:
-   ```bash
-   prek install
-   ```
-
-Now, `cargo fmt` and `cargo test` will run automatically every time you commit. You can also run them manually anytime with `prek run`.
+Formatting and tests will run automatically on every commit.

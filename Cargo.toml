@@ -11,6 +11,7 @@ dioxus = { version = "0.7.1", features = ["router", "fullstack"] }
 reqwest = { version = "0.13.1", features = ["json"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
+rusqlite = { version = "0.33", optional = true }
 
 [features]
 default = ["web"]
@@ -21,4 +22,4 @@ desktop = ["dioxus/desktop"]
 # The feature that are only required for the mobile = ["dioxus/mobile"] build target should be optional and only enabled in the mobile = ["dioxus/mobile"] feature
 mobile = ["dioxus/mobile"]
 # The feature that are only required for the server = ["dioxus/server"] build target should be optional and only enabled in the server = ["dioxus/server"] feature
-server = ["dioxus/server"]
+server = ["dioxus/server", "dep:rusqlite"]

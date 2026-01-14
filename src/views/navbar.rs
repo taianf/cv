@@ -3,14 +3,23 @@ use dioxus::prelude::*;
 
 const NAVBAR_CSS: Asset = asset!("/assets/styling/navbar.css");
 
-/// The Navbar component that will be rendered on all pages of our app since every page is under the layout.
-///
-///
-/// This layout component wraps the UI of [Route::Home] and [Route::Blog] in a common navbar. The contents of the Home and Blog
-/// routes will be rendered under the outlet inside this component
 #[component]
 pub fn Navbar() -> Element {
-    let mut auth_user = use_resource(crate::models::get_current_user);
+    let mut auth_user = use_context::<Signal<Option<crate::models::AuthUser>>>();
+
+    // Load from local storage on first render
+    use_effect(move || {
+        #[cfg(feature = "web")]
+        {
+            if let Some(window) = web_sys::window() {
+                if let Ok(Some(storage)) = window.local_storage() {
+                    if let Ok(Some(email)) = storage.get_item("auth_email") {
+                        auth_user.set(Some(crate::models::AuthUser { email }));
+                    }
+                }
+            }
+        }
+    });
 
     rsx! {
         document::Link { rel: "stylesheet", href: NAVBAR_CSS }
@@ -25,37 +34,48 @@ pub fn Navbar() -> Element {
             }
 
             div { class: "flex items-center gap-4",
-                match auth_user.cloned() {
-                    Some(Ok(Some(user))) => rsx! {
-                        Link {
-                            to: Route::Profile {},
-                            class: "hover:text-blue-400 transition-colors flex items-center gap-2",
-                            i { class: "fas fa-user-circle" }
-                            "{user.email}"
-                        }
-                        button {
-                            class: "text-sm bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded transition-colors",
-                            onclick: move |_| {
-                                spawn(async move {
-                                    let _ = crate::models::logout().await;
-                                    auth_user.restart();
-                                });
-                            },
-                            "Logout"
-                        }
-                    },
-                    _ => rsx! {
-                        button {
-                            class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors",
-                            onclick: move |_| {
-                                spawn(async move {
-                                    let _ = crate::models::login_mock().await;
-                                    auth_user.restart();
-                                });
-                            },
-                            i { class: "fab fa-google" }
-                            "Login with Google"
-                        }
+                if let Some(user) = auth_user() {
+                    Link {
+                        to: Route::Profile {},
+                        class: "hover:text-blue-400 transition-colors flex items-center gap-2",
+                        i { class: "fas fa-user-circle" }
+                        "{user.email}"
+                    }
+                    button {
+                        class: "text-sm bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded transition-colors",
+                        onclick: move |_| {
+                            auth_user.set(None);
+                            #[cfg(feature = "web")]
+                            {
+                                if let Some(window) = web_sys::window() {
+                                    if let Ok(Some(storage)) = window.local_storage() {
+                                        let _ = storage.remove_item("auth_email");
+                                    }
+                                }
+                            }
+                        },
+                        "Logout"
+                    }
+                } else {
+                    button {
+                        class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors",
+                        onclick: move |_| {
+                            spawn(async move {
+                                if let Ok(user) = crate::models::login_mock().await {
+                                    auth_user.set(Some(user.clone()));
+                                    #[cfg(feature = "web")]
+                                    {
+                                        if let Some(window) = web_sys::window() {
+                                            if let Ok(Some(storage)) = window.local_storage() {
+                                                let _ = storage.set_item("auth_email", &user.email);
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        },
+                        i { class: "fab fa-google" }
+                        "Login with Google"
                     }
                 }
             }

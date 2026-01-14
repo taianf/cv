@@ -784,6 +784,7 @@ dependencies = [
  "rusqlite",
  "serde",
  "serde_json",
+ "web-sys",
 ]
 
 [[package]]

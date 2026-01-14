@@ -2,10 +2,10 @@ use dioxus::prelude::*;
 
 #[component]
 pub fn Profile() -> Element {
-    let auth_user = use_resource(crate::models::get_current_user);
+    let auth_user = use_context::<Signal<Option<crate::models::AuthUser>>>();
 
-    match auth_user.cloned() {
-        Some(Ok(Some(user))) => {
+    match auth_user() {
+        Some(user) => {
             rsx! {
                 div { class: "max-w-2xl mx-auto py-12 px-6",
                     div { class: "bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-700",
@@ -30,16 +30,11 @@ pub fn Profile() -> Element {
                 }
             }
         }
-        Some(Ok(None)) => {
+        None => {
             rsx! {
                 div { class: "text-center py-20",
                     h2 { class: "text-2xl text-white", "Please log in to view your profile." }
                 }
-            }
-        }
-        _ => {
-            rsx! {
-                div { class: "text-center py-20 text-gray-400 animate-pulse", "Checking authentication..." }
             }
         }
     }

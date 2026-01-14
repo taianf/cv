@@ -11,6 +11,8 @@ fn main() {
 
 #[component]
 fn App() -> Element {
+    let _auth_user = use_context_provider(|| Signal::new(None::<cv::models::AuthUser>));
+
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: MAIN_CSS }

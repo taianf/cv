@@ -65,14 +65,3 @@ This project uses [prek](https://github.com/j178/prek) to manage [pre-commit](ht
 
 - **Manual Run**: `prek run`
 - **Update Hooks**: `prek autoupdate`
-
-### Testing & Coverage
-
-We use `cargo-llvm-cov` to measure code coverage.
-
-```bash
-# Run tests and show coverage summary
-cargo llvm-cov --ignore-filename-regex "tests/"
-```
-
-Formatting, linting, and coverage checks will run automatically on every commit. Total coverage must be at least **50%**, and new code must have at least **70%** coverage.

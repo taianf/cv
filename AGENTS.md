@@ -33,10 +33,7 @@ cargo test -- --nocapture
 # Run tests in release mode
 cargo test --release
 
-# Code coverage report
-cargo llvm-cov --ignore-filename-regex "tests/"
-
-# Pre-commit hooks (format, lint, test, coverage)
+# Pre-commit hooks (format, lint, test)
 prek run
 ```
 
@@ -198,12 +195,6 @@ pub enum Route {
 
 ## Testing Requirements
 
-### Coverage Standards
-
-- **Total Coverage**: Minimum 50%
-- **New Code Coverage**: Minimum 70%
-- Enforced via pre-commit hooks
-
 ### Test Organization
 
 - Test files in `tests/` directory
@@ -219,9 +210,6 @@ cargo test
 
 # Specific test file
 cargo test --test auth_tests
-
-# Coverage report
-cargo llvm-cov --ignore-filename-regex "tests/"
 ```
 
 ## Pre-commit Hooks
@@ -230,7 +218,6 @@ Automatically runs:
 
 1. `cargo fmt` - Code formatting
 1. `cargo test` - All tests
-1. `cargo llvm-cov` - Coverage check
 1. Markdown formatting
 1. YAML formatting
 

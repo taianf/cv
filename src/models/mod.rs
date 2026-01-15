@@ -39,8 +39,21 @@ pub async fn get_google_auth_url() -> Result<String, ServerFnError> {
         use oauth2::basic::BasicClient;
         use oauth2::{AuthUrl, ClientId, ClientSecret, RedirectUrl, Scope};
 
-        let client_id =
-            std::env::var("GOOGLE_CLIENT_ID").unwrap_or_else(|_| "YOUR_CLIENT_ID".to_string());
+        let client_id = std::env::var("GOOGLE_CLIENT_ID").ok();
+        let app_env = std::env::var("APP_ENV").unwrap_or_default().to_lowercase();
+
+        // Mock and Dev strategy
+        let is_placeholder = client_id
+            .as_deref()
+            .map(|id| id.contains("your_"))
+            .unwrap_or(true);
+        let is_dev = app_env == "development" || app_env == "dev";
+
+        if is_placeholder || is_dev {
+            return Ok("/auth/callback?code=mock_code_for_dev".to_string());
+        }
+
+        let client_id = client_id.unwrap();
         let client_secret = std::env::var("GOOGLE_CLIENT_SECRET")
             .unwrap_or_else(|_| "YOUR_CLIENT_SECRET".to_string());
         let redirect_url = std::env::var("GOOGLE_REDIRECT_URL")
@@ -78,6 +91,16 @@ pub async fn exchange_code_for_user(code: String) -> Result<AuthUser, ServerFnEr
             AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl, TokenResponse,
             TokenUrl,
         };
+
+        // Dev/Mock strategy
+        let app_env = std::env::var("APP_ENV").unwrap_or_default().to_lowercase();
+        let is_dev = app_env == "development" || app_env == "dev";
+
+        if code == "mock_code_for_dev" || is_dev {
+            return Ok(AuthUser {
+                email: "dev.user@example.com".to_string(),
+            });
+        }
 
         let client_id =
             std::env::var("GOOGLE_CLIENT_ID").unwrap_or_else(|_| "YOUR_CLIENT_ID".to_string());

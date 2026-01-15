@@ -1,294 +1,260 @@
-You are an expert [0.7 Dioxus](https://dioxuslabs.com/learn/0.7) assistant. Dioxus 0.7 changes every api in dioxus. Only use this up to date documentation. `cx`, `Scope`, and `use_state` are gone
+# Development Guidelines for CV Project
 
-Provide concise code examples with detailed descriptions
+You are an expert [0.7 Dioxus](https://dioxuslabs.com/learn/0.7) assistant. Dioxus 0.7 changes every api in dioxus. Only use this up to date documentation. `cx`, `Scope`, and `use_state` are gone.
 
-# Dioxus Dependency
+## Build & Development Commands
 
-You can add Dioxus to your `Cargo.toml` like this:
+### Essential Commands
 
-```toml
-[dependencies]
-dioxus = { version = "0.7.1" }
-
-[features]
-default = ["web", "webview", "server"]
-web = ["dioxus/web"]
-webview = ["dioxus/desktop"]
-server = ["dioxus/server"]
-```
-
-# Launching your application
-
-You need to create a main function that sets up the Dioxus runtime and mounts your root component.
-
-```rust
-use dioxus::prelude::*;
-
-fn main() {
-	dioxus::launch(App);
-}
-
-#[component]
-fn App() -> Element {
-	rsx! { "Hello, Dioxus!" }
-}
-```
-
-Then serve with `dx serve`:
-
-```sh
-curl -sSL http://dioxus.dev/install.sh | sh
+```bash
+# Start development server (with environment variables)
+export $(cat .env | xargs)
 dx serve
-```
 
-# UI with RSX
+# Build the project
+dx build
 
-```rust
-rsx! {
-	div {
-		class: "container", // Attribute
-		color: "red", // Inline styles
-		width: if condition { "100%" }, // Conditional attributes
-		"Hello, Dioxus!"
-	}
-	// Prefer loops over iterators
-	for i in 0..5 {
-		div { "{i}" } // use elements or components directly in loops
-	}
-	if condition {
-		div { "Condition is true!" } // use elements or components directly in conditionals
-	}
+# Format code
+cargo fmt
 
-	{children} // Expressions are wrapped in brace
-	{(0..5).map(|i| rsx! { span { "Item {i}" } })} // Iterators must be wrapped in braces
-}
-```
-
-# Assets
-
-The asset macro can be used to link to local files to use in your project. All links start with `/` and are relative to the root of your project.
-
-```rust
-rsx! {
-	img {
-		src: asset!("/assets/image.png"),
-		alt: "An image",
-	}
-}
-```
-
-## Styles
-
-The `document::Stylesheet` component will inject the stylesheet into the `<head>` of the document
-
-```rust
-rsx! {
-	document::Stylesheet {
-		href: asset!("/assets/styles.css"),
-	}
-}
-```
-
-# Components
-
-Components are the building blocks of apps
-
-- Components are functions annotated with the `#[component]` macro.
-- The function name must start with a capital letter or contain an underscore.
-- A component re-renders only under two conditions:
-  1. Its props change (as determined by `PartialEq`).
-  1. An internal reactive state it depends on is updated.
-
-```rust
-#[component]
-fn Input(mut value: Signal<String>) -> Element {
-	rsx! {
-		input {
-            value,
-			oninput: move |e| {
-				*value.write() = e.value();
-			},
-			onkeydown: move |e| {
-				if e.key() == Key::Enter {
-					value.write().clear();
-				}
-			},
-		}
-	}
-}
-```
-
-Each component accepts function arguments (props)
-
-- Props must be owned values, not references. Use `String` and `Vec<T>` instead of `&str` or `&[T]`.
-- Props must implement `PartialEq` and `Clone`.
-- To make props reactive and copy, you can wrap the type in `ReadOnlySignal`. Any reactive state like memos and resources that read `ReadOnlySignal` props will automatically re-run when the prop changes.
-
-# State
-
-A signal is a wrapper around a value that automatically tracks where it's read and written. Changing a signal's value causes code that relies on the signal to rerun.
-
-## Local State
-
-The `use_signal` hook creates state that is local to a single component. You can call the signal like a function (e.g. `my_signal()`) to clone the value, or use `.read()` to get a reference. `.write()` gets a mutable reference to the value.
-
-Use `use_memo` to create a memoized value that recalculates when its dependencies change. Memos are useful for expensive calculations that you don't want to repeat unnecessarily.
-
-```rust
-#[component]
-fn Counter() -> Element {
-	let mut count = use_signal(|| 0);
-	let mut doubled = use_memo(move || count() * 2); // doubled will re-run when count changes because it reads the signal
-
-	rsx! {
-		h1 { "Count: {count}" } // Counter will re-render when count changes because it reads the signal
-		h2 { "Doubled: {doubled}" }
-		button {
-			onclick: move |_| *count.write() += 1, // Writing to the signal rerenders Counter
-			"Increment"
-		}
-		button {
-			onclick: move |_| count.with_mut(|count| *count += 1), // use with_mut to mutate the signal
-			"Increment with with_mut"
-		}
-	}
-}
-```
-
-## Context API
-
-The Context API allows you to share state down the component tree. A parent provides the state using `use_context_provider`, and any child can access it with `use_context`
-
-```rust
-#[component]
-fn App() -> Element {
-	let mut theme = use_signal(|| "light".to_string());
-	use_context_provider(|| theme); // Provide a type to children
-	rsx! { Child {} }
-}
-
-#[component]
-fn Child() -> Element {
-	let theme = use_context::<Signal<String>>(); // Consume the same type
-	rsx! {
-		div {
-			"Current theme: {theme}"
-		}
-	}
-}
-```
-
-# Async
-
-For state that depends on an asynchronous operation (like a network request), Dioxus provides a hook called `use_resource`. This hook manages the lifecycle of the async task and provides the result to your component.
-
-- The `use_resource` hook takes an `async` closure. It re-runs this closure whenever any signals it depends on (reads) are updated
-- The `Resource` object returned can be in several states when read:
-
-1. `None` if the resource is still loading
-1. `Some(value)` if the resource has successfully loaded
-
-```rust
-let mut dog = use_resource(move || async move {
-	// api request
-});
-
-match dog() {
-	Some(dog_info) => rsx! { Dog { dog_info } },
-	None => rsx! { "Loading..." },
-}
-```
-
-# Routing
-
-All possible routes are defined in a single Rust `enum` that derives `Routable`. Each variant represents a route and is annotated with `#[route("/path")]`. Dynamic Segments can capture parts of the URL path as parameters by using `:name` in the route string. These become fields in the enum variant.
-
-The `Router<Route> {}` component is the entry point that manages rendering the correct component for the current URL.
-
-You can use the `#[layout(NavBar)]` to create a layout shared between pages and place an `Outlet<Route> {}` inside your layout component. The child routes will be rendered in the outlet.
-
-```rust
-#[derive(Routable, Clone, PartialEq)]
-enum Route {
-	#[layout(NavBar)] // This will use NavBar as the layout for all routes
-		#[route("/")]
-		Home {},
-		#[route("/blog/:id")] // Dynamic segment
-		BlogPost { id: i32 },
-}
-
-#[component]
-fn NavBar() -> Element {
-	rsx! {
-		a { href: "/", "Home" }
-		Outlet<Route> {} // Renders Home or BlogPost
-	}
-}
-
-#[component]
-fn App() -> Element {
-	rsx! { Router::<Route> {} }
-}
-```
-
-```toml
-dioxus = { version = "0.7.1", features = ["router"] }
-```
-
-# Fullstack
-
-Fullstack enables server rendering and ipc calls. It uses Cargo features (`server` and a client feature like `web`) to split the code into a server and client binaries.
-
-```toml
-dioxus = { version = "0.7.1", features = ["fullstack"] }
-```
-
-## Server Functions
-
-Use the `#[post]` / `#[get]` macros to define an `async` function that will only run on the server. On the server, this macro generates an API endpoint. On the client, it generates a function that makes an HTTP request to that endpoint.
-
-```rust
-#[post("/api/double/:path/&query")]
-async fn double_server(number: i32, path: String, query: i32) -> Result<i32, ServerFnError> {
-	tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-	Ok(number * 2)
-}
-```
-
-## Hydration
-
-Hydration is the process of making a server-rendered HTML page interactive on the client. The server sends the initial HTML, and then the client-side runs, attaches event listeners, and takes control of future rendering.
-
-### Errors
-
-The initial UI rendered by the component on the client must be identical to the UI rendered on the server.
-
-- Use the `use_server_future` hook instead of `use_resource`. It runs the future on the server, serializes the result, and sends it to the client, ensuring the client has the data immediately for its first render.
-- Any code that relies on browser-specific APIs (like accessing `localStorage`) must be run *after* hydration. Place this code inside a `use_effect` hook.
-
-# Testing & Code Coverage
-
-## Running Tests
-
-All unit tests should be placed in the `tests/` directory to keep the `src/` directory clean.
-
-```sh
 # Run all tests
 cargo test
+
+# Run specific test file
+cargo test --test auth_tests
+cargo test --test component_tests
+cargo test --test model_tests
+cargo test --test route_tests
+cargo test --test view_tests
+
+# Run tests with verbose output
+cargo test -- --nocapture
+
+# Run tests in release mode
+cargo test --release
+
+# Code coverage report
+cargo llvm-cov --ignore-filename-regex "tests/"
+
+# Pre-commit hooks (format, lint, test, coverage)
+prek run
 ```
 
-## Code Coverage
+### Project Setup
 
-We use `cargo-llvm-cov` for code coverage analysis.
+```bash
+chmod +x setup.sh
+./setup.sh
+```
 
-```sh
-# Run coverage report
+## Code Style Guidelines
+
+### File Organization
+
+- **Main entry**: `src/main.rs` - Contains `main()` and `App` component
+- **Core library**: `src/lib.rs` - Contains route definitions and module exports
+- **Modules**: Organized in `src/` with `mod.rs` files for proper exports
+- **Tests**: All unit tests in `tests/` directory (not `src/`)
+
+### Import Style
+
+```rust
+// Standard imports first
+use dioxus::prelude::*;
+use serde::{Deserialize, Serialize};
+
+// Local imports second
+use cv::models::AuthUser;
+use views::{Home, Blog, Profile};
+```
+
+### Component Guidelines
+
+- Components use `#[component]` macro
+- Function names start with capital letter or contain underscore
+- Props are owned values (String, Vec<T>) not references (&str, &[T])
+- Props must implement `PartialEq` and `Clone`
+- Use `ReadOnlySignal` for reactive props
+
+```rust
+#[component]
+pub fn SocialLink(href: String, icon: String, label: String) -> Element {
+    rsx! {
+        a {
+            href: "{href}",
+            target: "_blank",
+            class: "group flex items-center gap-2 text-blue-500 font-bold hover:text-white transition-colors text-lg",
+            i { class: "fab {icon} text-xl" }
+            "{label}"
+        }
+    }
+}
+```
+
+### RSX Patterns
+
+- Use loops over iterators when possible
+- Conditional rendering with `if` statements
+- Expressions wrapped in braces
+- Assets referenced with `asset!()` macro
+
+```rust
+rsx! {
+    div {
+        class: "container",
+        for i in 0..5 {
+            div { "{i}" }
+        }
+        if condition {
+            div { "Condition is true!" }
+        }
+        img {
+            src: asset!("/assets/image.png"),
+            alt: "An image",
+        }
+    }
+}
+```
+
+### State Management
+
+- Local state: `use_signal(|| initial_value)`
+- Memoized values: `use_memo(move || expensive_calculation())`
+- Context: `use_context_provider(|| signal)` and `use_context::<Signal<T>>()`
+
+```rust
+let mut count = use_signal(|| 0);
+let doubled = use_memo(move || count() * 2);
+
+// Writing to signal
+*count.write() += 1;
+count.with_mut(|c| *c += 1);
+```
+
+### Error Handling
+
+- Use `Result<T, ServerFnError>` for server functions
+- Proper error propagation with `map_err`
+- Descriptive error messages
+
+```rust
+#[server]
+pub async fn exchange_code_for_user(code: String) -> Result<AuthUser, ServerFnError> {
+    let user_info = client
+        .get("https://www.googleapis.com/oauth2/v2/userinfo")
+        .send()
+        .await
+        .map_err(|e| ServerFnError::new(format!("Failed to fetch user info: {}", e)))?;
+
+    Ok(AuthUser { email })
+}
+```
+
+### Feature Flags
+
+- Use conditional compilation for server-only code
+- Proper feature organization in `Cargo.toml`
+
+```rust
+#[cfg(feature = "server")]
+{
+    // Server-only code
+}
+#[cfg(not(feature = "server"))]
+{
+    // Client-only fallback
+}
+```
+
+### Models & Data Structures
+
+- Use `#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]`
+- Public fields for simple structs
+- Proper serde integration
+
+```rust
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct AuthUser {
+    pub email: String,
+}
+```
+
+### Routing
+
+- Single enum with `#[derive(Routable, Clone, PartialEq)]`
+- Use `#[layout(Component)]` for shared layouts
+- Dynamic segments with `:name` syntax
+
+```rust
+#[derive(Debug, Clone, Routable, PartialEq)]
+pub enum Route {
+    #[layout(Navbar)]
+    #[route("/")]
+    Home {},
+    #[route("/blog/:id")]
+    BlogPost { id: i32 },
+}
+```
+
+## Testing Requirements
+
+### Coverage Standards
+
+- **Total Coverage**: Minimum 50%
+- **New Code Coverage**: Minimum 70%
+- Enforced via pre-commit hooks
+
+### Test Organization
+
+- Test files in `tests/` directory
+- Named with `_tests.rs` suffix
+- Comprehensive edge case coverage
+- Unit tests for all major components
+
+### Running Tests
+
+```bash
+# All tests
+cargo test
+
+# Specific test file
+cargo test --test auth_tests
+
+# Coverage report
 cargo llvm-cov --ignore-filename-regex "tests/"
 ```
 
-### Coverage Requirements
+## Pre-commit Hooks
 
-- **Total Code Coverage**: Must be at least **50%**.
-- **New Code Coverage**: Must be at least **70%**.
+Automatically runs:
 
-These checks are enforced via pre-commit hooks.
+1. `cargo fmt` - Code formatting
+1. `cargo test` - All tests
+1. `cargo llvm-cov` - Coverage check
+1. Markdown formatting
+1. YAML formatting
+
+Manual run: `prek run`
+
+## Environment Configuration
+
+- Use `.env` file for local development
+- Template available in `.env.template`
+- Load with: `export $(cat .env | xargs)`
+- Server-only variables accessed with `std::env::var`
+
+## Dependencies
+
+- **Dioxus 0.7.1** with router and fullstack features
+- **reqwest** for HTTP requests
+- **serde** for serialization
+- **oauth2** for Google authentication (server feature)
+- **rusqlite** for database (server feature)
+- **web-sys** for browser APIs
+
+## Asset Management
+
+- Assets in `assets/` directory
+- Referenced with `asset!("/assets/path")` macro
+- CSS files in `assets/styling/`
+- Images and icons in `assets/` root

@@ -3,9 +3,11 @@
 A real-time, dynamic CV and personal landing page built with [Dioxus](https://dioxuslabs.com/).
 
 ## Goal
+
 The goal of this project is to create a professional and visually stunning CV page that serves as a central hub for all my professional links (LinkedIn, GitHub, etc.) and displays real-time status/stats from these platforms.
 
 ## Features
+
 - **GitHub Integration**: Real-time display of user profile and repository stats.
 - **Google OAuth2 Authentication**: Secure login to access profile features.
 - **Personal Profile**: Display user-specific attributes and stats.
@@ -13,6 +15,7 @@ The goal of this project is to create a professional and visually stunning CV pa
 - **Local Persistence**: Independent session management using localStorage.
 
 ## Tech Stack
+
 - **Framework**: [Dioxus](https://dioxuslabs.com/) (Rust)
 - **Styling**: Tailwind CSS & Vanilla CSS
 - **Database**: SQLite (Rusqlite) for caching
@@ -28,11 +31,12 @@ chmod +x setup.sh
 ```
 
 This script will:
+
 1. Install `cargo-binstall`.
-2. Install `dioxus-cli`.
-3. Install `prek`.
-4. Activate Git hooks.
-5. Create a `.env` file from the template.
+1. Install `dioxus-cli`.
+1. Install `prek`.
+1. Activate Git hooks.
+1. Create a `.env` file from the template.
 
 ## Configuration
 
@@ -45,13 +49,14 @@ This script will:
 ## Running the Application
 
 1. **Start the development server**:
+
    ```bash
    # Load environment variables and start
    export $(cat .env | xargs)
    dx serve
    ```
 
-2. **Open in browser**:
+1. **Open in browser**:
    Navigate to `http://localhost:8080`
 
 ## Development Hooks
@@ -61,4 +66,13 @@ This project uses [prek](https://github.com/j178/prek) to manage [pre-commit](ht
 - **Manual Run**: `prek run`
 - **Update Hooks**: `prek autoupdate`
 
-Formatting and tests will run automatically on every commit.
+### Testing & Coverage
+
+We use `cargo-llvm-cov` to measure code coverage.
+
+```bash
+# Run tests and show coverage summary
+cargo llvm-cov --ignore-filename-regex "tests/"
+```
+
+Formatting, linting, and coverage checks will run automatically on every commit. Total coverage must be at least **50%**, and new code must have at least **70%** coverage.

@@ -4,48 +4,17 @@ use dioxus::prelude::*;
 #[component]
 pub fn Navbar() -> Element {
     let mut auth_user = use_context::<Signal<Option<crate::models::AuthUser>>>();
-    let mut show_notifications = use_signal(|| false);
-    let mut notifications = use_signal(|| {
-        vec![
-            "New post in the forum!",
-            "Someone liked your profile",
-            "System maintenance at 2 AM",
-        ]
-    });
+    let mut is_menu_open = use_signal(|| false);
 
-    // Load status from local storage on first render
+    // Load from local storage on first render
     use_effect(move || {
         #[cfg(feature = "web")]
         {
             if let Some(window) = web_sys::window() {
                 if let Ok(Some(storage)) = window.local_storage() {
-                    // Profile
                     if let Ok(Some(email)) = storage.get_item("auth_email") {
                         auth_user.set(Some(crate::models::AuthUser { email }));
                     }
-
-                    // Notifications Status
-                    if let Ok(Some(status)) = storage.get_item("notifications_cleared") {
-                        if status == "true" {
-                            notifications.write().clear();
-                        }
-                    }
-                }
-            }
-        }
-    });
-
-    // Save notification status whenever it changes
-    use_effect(move || {
-        let is_empty = notifications.read().is_empty();
-        #[cfg(feature = "web")]
-        {
-            if let Some(window) = web_sys::window() {
-                if let Ok(Some(storage)) = window.local_storage() {
-                    let _ = storage.set_item(
-                        "notifications_cleared",
-                        if is_empty { "true" } else { "false" },
-                    );
                 }
             }
         }
@@ -67,9 +36,34 @@ pub fn Navbar() -> Element {
 
     rsx! {
         div { id: "main-container", class: "flex min-h-screen bg-[#0f1116]",
+            // Mobile Hamburger Button
+            button {
+                class: "md:hidden fixed top-4 left-4 z-50 p-3 bg-gray-900/90 text-white rounded-xl shadow-lg border border-gray-800 backdrop-blur-sm",
+                onclick: move |_| is_menu_open.set(!is_menu_open()),
+                i { class: "fas fa-bars text-xl" }
+            }
+
+            // Mobile Backdrop
+            if is_menu_open() {
+                div {
+                    class: "fixed inset-0 bg-black/50 backdrop-blur-sm z-30 md:hidden animate-in fade-in duration-200",
+                    onclick: move |_| is_menu_open.set(false)
+                }
+            }
+
             // Sidebar
             nav {
-                class: "w-72 bg-[#0a0c10] border-r border-gray-800 flex flex-col fixed h-screen z-20",
+                class: format!(
+                    "w-72 bg-[#0a0c10] border-r border-gray-800 flex flex-col fixed h-screen z-40 transition-transform duration-300 ease-in-out {}",
+                    if is_menu_open() { "translate-x-0" } else { "-translate-x-full md:translate-x-0" }
+                ),
+
+                // Close Button (Mobile only)
+                button {
+                    class: "absolute top-4 right-4 p-2 text-gray-400 hover:text-white md:hidden",
+                    onclick: move |_| is_menu_open.set(false),
+                    i { class: "fas fa-times text-xl" }
+                }
 
                 // Logo
                 div { class: "p-8 mb-4",
@@ -84,41 +78,41 @@ pub fn Navbar() -> Element {
                     Link {
                         to: Route::Home {},
                         class: nav_item_class(Route::Home {}),
+                        onclick: move |_| is_menu_open.set(false),
                         i { class: "fas fa-home w-5 text-center" }
-                        "Início"
+                        "Home"
                     }
                     Link {
                         to: Route::Blog {},
                         class: nav_item_class(Route::Blog {}),
+                        onclick: move |_| is_menu_open.set(false),
                         i { class: "fas fa-book w-5 text-center" }
                         "Blog"
                     }
-                    Link {
-                        to: Route::Members {},
-                        class: nav_item_class(Route::Members {}),
-                        i { class: "fas fa-crown w-5 text-center" }
-                        "Members Area"
-                    }
-                    Link {
-                        to: Route::Forum {},
-                        class: nav_item_class(Route::Forum {}),
-                        i { class: "fas fa-comments w-5 text-center" }
-                        "Forum"
-                    }
-
-                    // Notification Button (Not a route, but a toggle)
-                    button {
-                        class: "w-full flex items-center justify-between gap-3 px-6 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition-all group",
-                        onclick: move |_| show_notifications.set(!show_notifications()),
-                        div { class: "flex items-center gap-3",
-                            i { class: "fas fa-bell w-5 text-center" }
-                            "Notifications"
-                        }
-                        if !notifications.read().is_empty() {
-                            span { class: "bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full",
-                                "{notifications.read().len()}"
+                    // About link with smooth scroll handling
+                    a {
+                        href: "/#about",
+                        class: "cursor-pointer flex items-center gap-3 px-6 py-3 rounded-xl transition-all duration-200 group text-gray-400 hover:text-white hover:bg-gray-800",
+                        onclick: move |_| {
+                            is_menu_open.set(false);
+                            #[cfg(feature = "web")]
+                            {
+                                if let Some(window) = web_sys::window() {
+                                    if let Some(document) = window.document() {
+                                        if let Some(element) = document.get_element_by_id("about") {
+                                            element.scroll_into_view_with_scroll_into_view_options(
+                                                web_sys::ScrollIntoViewOptions::new().behavior(web_sys::ScrollBehavior::Smooth)
+                                            );
+                                        } else {
+                                            // improved navigation logic: if strictly on a different route, navigate first
+                                            let _ = window.location().set_href("/#about");
+                                        }
+                                    }
+                                }
                             }
-                        }
+                        },
+                        i { class: "fas fa-user w-5 text-center" }
+                        "About"
                     }
                 }
 
@@ -138,6 +132,7 @@ pub fn Navbar() -> Element {
                             Link {
                                 to: Route::Profile {},
                                 class: "block w-full text-center py-2 text-sm text-blue-500 hover:text-blue-400 font-medium transition-colors",
+                                onclick: move |_| is_menu_open.set(false),
                                 "Manage Account"
                             }
                             button {
@@ -171,47 +166,15 @@ pub fn Navbar() -> Element {
                                     }
                                 });
                             },
-                            i { class: "fab fa-google" }
+                            i { class: "fas fa-sign-in-alt" }
                             "Login"
                         }
                     }
                 }
             }
 
-            // Notification Overlay
-            if show_notifications() {
-                div {
-                    class: "fixed inset-0 z-30",
-                    onclick: move |_| show_notifications.set(false),
-                    div {
-                        class: "absolute left-76 top-20 w-80 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-left-4 duration-200",
-                        onclick: move |e| e.stop_propagation(),
-                        div { class: "flex justify-between items-center mb-4 pb-2 border-b border-gray-800",
-                            h4 { class: "font-bold text-white", "Notifications" }
-                            button {
-                                class: "text-xs text-blue-500",
-                                onclick: move |_| notifications.write().clear(),
-                                "Clear all"
-                            }
-                        }
-                        div { class: "space-y-3",
-                            if notifications.read().is_empty() {
-                                p { class: "text-sm text-gray-500 text-center py-4", "No new notifications" }
-                            } else {
-                                for note in notifications.read().iter() {
-                                    div { class: "flex gap-3 items-start p-2 hover:bg-gray-800 rounded-lg transition-colors cursor-pointer",
-                                        div { class: "w-2 h-2 mt-1.5 rounded-full bg-blue-500 flex-shrink-0" }
-                                        p { class: "text-sm text-gray-300", "{note}" }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
             // Main Content Area
-            main { class: "flex-grow ml-72 min-h-screen",
+            main { class: "flex-grow md:ml-72 min-h-screen transition-all duration-300",
                 Outlet::<Route> {}
             }
         }

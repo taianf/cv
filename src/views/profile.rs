@@ -1,3 +1,4 @@
+use crate::components::SectionCard;
 use dioxus::prelude::*;
 
 #[component]
@@ -11,12 +12,9 @@ pub fn Profile() -> Element {
                     h1 { class: "text-4xl font-bold mb-8 text-blue-500", "Account Settings" }
 
                     div { class: "grid gap-8",
-                        div { class: "bg-gray-800 p-8 rounded-2xl border border-gray-700",
-                            h2 { class: "text-xl font-bold mb-6 flex items-center gap-2",
-                                i { class: "fas fa-id-card text-blue-500" }
-                                "Personal Information"
-                            }
-
+                        SectionCard {
+                            title: "Personal Information".to_string(),
+                            icon: "fa-id-card".to_string(),
                             div { class: "grid grid-cols-1 md:grid-cols-2 gap-6",
                                 div {
                                     label { class: "block text-xs uppercase text-gray-500 mb-1", "Email Address" }
@@ -29,11 +27,9 @@ pub fn Profile() -> Element {
                             }
                         }
 
-                        div { class: "bg-gray-800 p-8 rounded-2xl border border-gray-700",
-                            h2 { class: "text-xl font-bold mb-6 flex items-center gap-2",
-                                i { class: "fas fa-shield-halved text-blue-500" }
-                                "Security"
-                            }
+                        SectionCard {
+                            title: "Security".to_string(),
+                            icon: "fa-shield-halved".to_string(),
                             button { class: "bg-gray-900 hover:bg-gray-750 text-white px-4 py-2 rounded-lg border border-gray-700 transition-colors",
                                 "Change Password"
                             }

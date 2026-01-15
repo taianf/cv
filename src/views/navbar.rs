@@ -100,9 +100,9 @@ pub fn Navbar() -> Element {
                                 if let Some(window) = web_sys::window() {
                                     if let Some(document) = window.document() {
                                         if let Some(element) = document.get_element_by_id("about") {
-                                            element.scroll_into_view_with_scroll_into_view_options(
-                                                web_sys::ScrollIntoViewOptions::new().behavior(web_sys::ScrollBehavior::Smooth)
-                                            );
+                                            let mut options = web_sys::ScrollIntoViewOptions::new();
+                                            options.set_behavior(web_sys::ScrollBehavior::Smooth);
+                                            element.scroll_into_view_with_scroll_into_view_options(&options);
                                         } else {
                                             // improved navigation logic: if strictly on a different route, navigate first
                                             let _ = window.location().set_href("/#about");

@@ -1,16 +1,8 @@
-use crate::models::{get_github_user, GitHubUser};
+use crate::components::SocialLink;
 use dioxus::prelude::*;
 
 #[component]
 pub fn Home() -> Element {
-    let mut github_user = use_signal(|| None::<GitHubUser>);
-
-    use_resource(move || async move {
-        if let Ok(user) = get_github_user("taianf".to_string()).await {
-            github_user.set(Some(user));
-        }
-    });
-
     rsx! {
         div { class: "w-full",
             // Hero Section
@@ -31,19 +23,15 @@ pub fn Home() -> Element {
                         }
 
                         div { class: "flex gap-8 items-center",
-                            a {
-                                href: "https://github.com/taianf",
-                                target: "_blank",
-                                class: "group flex items-center gap-2 text-blue-500 font-bold hover:text-white transition-colors text-lg",
-                                i { class: "fab fa-github text-xl" }
-                                "Github"
+                            SocialLink {
+                                href: "https://github.com/taianf".to_string(),
+                                icon: "fa-github".to_string(),
+                                label: "Github".to_string()
                             }
-                            a {
-                                href: "https://www.linkedin.com/in/taian-feitosa/",
-                                target: "_blank",
-                                class: "group flex items-center gap-2 text-blue-500 font-bold hover:text-white transition-colors text-lg",
-                                i { class: "fab fa-linkedin text-xl" }
-                                "LinkedIn"
+                            SocialLink {
+                                href: "https://www.linkedin.com/in/taian-feitosa/".to_string(),
+                                icon: "fa-linkedin".to_string(),
+                                label: "LinkedIn".to_string()
                             }
                         }
                     }

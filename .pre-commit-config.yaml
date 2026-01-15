@@ -7,15 +7,14 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
   - repo: https://github.com/hukkin/mdformat
-    rev: 1.0.0 # Use the ref you want to point at
+    rev: 1.0.0
     hooks:
       - id: mdformat
-        # Optionally add plugins
         additional_dependencies:
           - mdformat-gfm
           - mdformat-black
   - repo: https://github.com/google/yamlfmt
-    rev: v0.9.0
+    rev: v0.21.0
     hooks:
       - id: yamlfmt
   - repo: local

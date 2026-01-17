@@ -266,10 +266,6 @@ fn test_memory_safety_with_large_inputs() {
 
 #[test]
 fn test_extreme_counter_boundary_values() {
-    // Test extreme counter boundary values
-    let max_value = i32::MAX;
-    let min_value = i32::MIN;
-
     let boundary_values: Vec<i32> = vec![0, 1, -1, 1000];
     for value in boundary_values {
         // Test that counter operations don't panic

@@ -7,7 +7,15 @@
 **/*.rs.bk
 
 # Environment variables
-.env
+.env*
+!.env.template
+
+# Secrets and sensitive data
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
 
 # IDE
 /.idea

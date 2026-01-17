@@ -74,10 +74,8 @@ fn test_auth_user_deserialization_unicode() {
     assert_eq!(user.email, deserialized.email);
 }
 
-// Enhanced server function tests
-
 #[cfg(feature = "server")]
-#[tokio::test]
+#[test]
 async fn test_get_google_auth_url_server_function() {
     // Test server function with different environment configurations
     std::env::set_var("APP_ENV", "test");
@@ -97,7 +95,7 @@ async fn test_get_google_auth_url_server_function() {
 }
 
 #[cfg(feature = "server")]
-#[tokio::test]
+#[test]
 async fn test_exchange_code_for_user_server_function() {
     // Test server function with mock code
     let result = exchange_code_for_user("mock_code_for_dev".to_string()).await;
@@ -108,15 +106,15 @@ async fn test_exchange_code_for_user_server_function() {
 }
 
 #[cfg(feature = "server")]
-#[tokio::test]
+#[test]
 async fn test_exchange_code_for_user_with_real_code_simulation() {
     // Test server function with real-looking code (should still return mock user in dev)
     std::env::set_var("APP_ENV", "development");
 
     let real_codes = vec![
-        "4/0AX4XfWgjY7X8K9Z2mQpL3vR5sT7uN1wE2rY4aI6bO8cD0eF",
-        "1/055765432109876543210987654321098765432109876",
-        "ya29.a0AfH6SMB-EXAMPLE-TOKEN-HERE-1234567890",
+        "4/0AX4XfWgjY7X8K9Z2mQpL3vR5sT7uN1wE2rY4aI6bO8cD0eF", # pragma: allowlist secret
+        "1/055765432109876543210987654321098765432109876",# pragma: allowlist secret
+        "ya29.a0AfH6SMB-EXAMPLE-TOKEN-HERE-1234567890",# pragma: allowlist secret
     ];
 
     for code in real_codes {
@@ -132,7 +130,7 @@ async fn test_exchange_code_for_user_with_real_code_simulation() {
 }
 
 #[cfg(feature = "server")]
-#[tokio::test]
+#[test]
 async fn test_server_function_error_handling() {
     // Test server function error handling with invalid inputs
     let invalid_codes = vec!["", "invalid_code", "null", "undefined", "[]", "{}"];
@@ -148,7 +146,7 @@ async fn test_server_function_error_handling() {
 }
 
 #[cfg(feature = "server")]
-#[tokio::test]
+#[test]
 async fn test_server_function_concurrent_requests() {
     // Test concurrent server function requests
     let futures = vec![
@@ -167,7 +165,7 @@ async fn test_server_function_concurrent_requests() {
 }
 
 #[cfg(feature = "server")]
-#[tokio::test]
+#[test]
 async fn test_server_function_environment_variable_handling() {
     // Test server function with various environment variable states
     let env_configs = vec![
